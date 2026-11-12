@@ -104,6 +104,46 @@ bun run build
 
 Le jeu est accessible sur `http://localhost:3000`.
 
+## Déploiement sur Render (gratuit, en ligne)
+
+Le jeu est **100% côté client** (Zustand + localStorage), donc il se déploie très simplement en **Static Site gratuit** sur Render. Deux options :
+
+### Option A — Déploiement en un clic (recommandé)
+
+Un fichier `render.yaml` (Blueprint) est déjà présent à la racine du dépôt.
+
+1. Créez un compte sur [render.com](https://render.com) (gratuit, connexion GitHub).
+2. Sur le dashboard Render, cliquez sur **New → Blueprint**.
+3. Sélectionnez le dépôt GitHub `bono-p/artillery-command-1`.
+4. Render détecte automatiquement le `render.yaml` et pré-remplit la configuration.
+5. Cliquez sur **Apply** — Render lance le build (`bun install && bun run build:static`) puis publie le dossier `out/` sur son CDN.
+6. Patientez ~2-3 min. Render vous donne une URL publique du type `https://artillery-command.onrender.com`.
+
+### Option B — Création manuelle
+
+1. Sur Render : **New → Static Site**.
+2. Connectez le dépôt GitHub `bono-p/artillery-command-1`.
+3. Configurez :
+   - **Name** : `artillery-command`
+   - **Branch** : `main`
+   - **Build Command** : `bun install && bun run build:static`
+   - **Publish Directory** : `out`
+   - **Plan** : Free
+4. **Create Static Site**. Le build se lance, et le site est en ligne quelques minutes plus tard.
+
+### Vérification post-déploiement
+
+- Ouvrez l'URL Render → l'écran de boot animé doit s'afficher.
+- Cliquez **Nouvelle campagne** → saisissez un nom de commandant → **Déployer**.
+- La carte de campagne s'affiche avec les 7 missions.
+- La progression est sauvegardée dans le `localStorage` du navigateur (persistante entre sessions sur le même appareil/navigateur).
+
+### Notes
+
+- Le plan gratuit Render pour les Static Sites n'a **pas de mise en veille** : le site répond instantanément via CDN.
+- Aucune variable d'environnement n'est nécessaire.
+- Chaque `git push` sur `main` redéploie automatiquement si l'auto-deploy est activé.
+
 ## Avis important
 
 Tous les paramètres balistiques, les caractéristiques des obusiers et des munitions, les procédures et les noms d'opérations sont **entièrement fictifs** et conçus exclusivement pour le gameplay. Aucune donnée opérationnelle réelle n'est reproduite. Les factions, les lieux et les personnages sont imaginaires.
