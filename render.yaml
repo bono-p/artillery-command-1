@@ -11,23 +11,19 @@
 
 services:
   - type: web
-    name: artillery-command
     runtime: static
-    # Branche à suivre
+    name: artillery-command
     branch: main
-    # Répertoire contenant les fichiers statiques générés par `next build`
-    rootDir: out
-    # Commande de build
+    # Commande de build : installe les dépendances puis génère l'export statique Next.js
     buildCommand: bun install && bun run build:static
-    # Répertoire à publier (relatif à rootDir)
-    publish: .
-    # Plan gratuit
+    # Répertoire à publier (chemin relatif à la racine du dépôt)
+    staticPublishPath: ./out
+    # Plan gratuit — pas de mise en veille pour les static sites
     plan: free
-    # Headers pour le cache et la sécurité
+    # Headers de cache et sécurité
     headers:
       - path: /_next/static/*
         name: Cache-Control
-        # Cache immuable pour les assets statiques (1 an)
         value: public, max-age=31536000, immutable
       - path: /*
         name: X-Content-Type-Options
