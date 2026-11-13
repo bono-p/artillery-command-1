@@ -1,229 +1,336 @@
-// ARTILLERY COMMAND — Types système
-// Tous les types du jeu, conçus pour le gameplay (paramètres fictifs)
+// ARTILLERY COMMAND v2 — Types système
+// Univers fictif de Theranie. Mécaniques : tours, contre-batterie, fog of war,
+// cibles mobiles, météo dynamique, contrats, événements narratifs à choix.
 
-export type ScreenName =
-  | "boot"
-  | "campaign"
-  | "briefing"
-  | "dashboard"
-  | "results"
-  | "barracks";
+export type ScreenName = "boot" | "hq" | "briefing" | "dashboard" | "debrief" | "barracks";
 
-export type Biome = "desert" | "forest" | "mountain" | "plain" | "urban";
+export type BiomeId = "plaine" | "desert" | "foret" | "montagne" | "urbain";
 
-export type FactionId = "astorie" | "drakov" | "velka" | "korr";
+export type FactionId = "theranie" | "sarkov" | "sorel" | "veyl";
+
+export type DifficultyId = "recrue" | "veteran" | "elite";
+
+export type AmmoId = "he" | "guide" | "frag" | "fum" | "illum";
+
+export type MissionType =
+  | "destruction"
+  | "interdiction"
+  | "recon"
+  | "contrebatterie"
+  | "appui"
+  | "reconquete";
+
+export type TargetType =
+  | "bunker"
+  | "depot"
+  | "radar"
+  | "pc"
+  | "batterie"
+  | "convoi"
+  | "colonne"
+  | "superbat"
+  | "infanterie"
+  | "mortier";
 
 export interface Faction {
   id: FactionId;
   name: string;
-  shortName: string;
-  color: string; // primary color hex
-  flagGlyph: string; // symbol
-  ideology: string;
-  description: string;
+  short: string;
+  color: string;
+  motto: string;
+  chief: string;
+  chiefTitle: string;
+  trait: string;
 }
 
-export type ShellType = "HE" | "SMOKE" | "ILLUM" | "GUIDED" | "CLUSTER";
-
-export interface ShellSpec {
-  type: ShellType;
+export interface Biome {
+  id: BiomeId;
   name: string;
-  // Gameplay parameters (not real-world)
-  baseDamage: number;       // 0-100 damage at point blank
-  blastRadius: number;       // in meters, area of effect
-  dispersion: number;        // base CEP in meters at max range
-  muzzleMult: number;        // muzzle velocity multiplier
-  cost: number;              // resource cost per shell
-  unlockRank: number;        // minimum rank index to unlock
-  description: string;
+  lo: [number, number, number];
+  hi: [number, number, number];
+  forest: number;
+  maxAlt: number;
+  wind: [number, number];
+  ground: string;
 }
 
-export interface HowitzerSpec {
-  id: string;
+export interface Ammo {
+  id: AmmoId;
   name: string;
-  caliber: string;          // fictional designation
-  maxRange: number;          // meters
-  minRange: number;          // meters
-  minElevation: number;      // degrees
-  maxElevation: number;      // degrees
-  baseAccuracy: number;      // base CEP in meters at 50% range
-  reloadTime: number;        // seconds per shot (gameplay)
+  short: string;
+  radius: number;     // rayon d'effet en mètres
+  dmg: number;         // dégâts au centre
+  disp: number;        // multiplicateur de dispersion
+  drift: number;        // sensibilité au vent
+  desc: string;
   unlockRank: number;
-  description: string;
+}
+
+export interface TargetDef {
+  type: TargetType;
+  name: string;
+  hp: number;
+  r: number;           // rayon de la cible
+  moving?: boolean;
+  note?: string;
 }
 
 export interface RankSpec {
-  id: number;
   name: string;
-  shortName: string;
-  xpRequired: number;
-  battalionSize: string;
-  perk: string;
+  xp: number;
+  unit: string;
 }
 
-export interface EquipmentProfile {
+export interface UpgradeSpec {
   id: string;
   name: string;
-  elevation: number;     // degrees
-  azimuth: number;       // degrees (bearing from north)
-  charge: number;        // 1-5
-  shellType: ShellType;
+  max: number;
+  cost: number[];
+  rank: number;
+  desc: string;
+}
+
+export interface ShopItem {
+  id: string;
+  name: string;
+  cost: number;
+  give: Partial<Record<"he" | "guide" | "frag" | "fum" | "illum" | "fuel" | "smoke" | "drones">>;
+  need?: string;
+}
+
+export interface DifficultySpec {
+  id: DifficultyId;
+  name: string;
+  disp: number;
+  det: number;
+  dmg: number;
+  reward: number;
+  hint: boolean;
 }
 
 export interface Coord {
-  x: number; // meters east
-  y: number; // meters north
+  x: number;
+  y: number;
 }
 
-export interface TargetSpec {
-  id: string;
+export interface Target {
+  id: number;
+  type: TargetType;
   name: string;
-  position: Coord;
-  radius: number;          // effective target radius (m)
-  hp: number;              // current hit points
-  maxHp: number;
-  priority: "primary" | "secondary" | "tertiary";
-  faction: FactionId;
-  type: "vehicle" | "infantry" | "structure" | "artillery" | "supply";
-  revealed: boolean;       // discovered by player?
-  movable?: boolean;
-  speed?: number;          // meters per minute if movable
-  movementPattern?: "static" | "patrol" | "advance";
+  hp: number;
+  max: number;
+  r: number;
+  primary: boolean;
+  known: boolean;
+  x: number;
+  y: number;
+  dest?: Coord;
+  speed?: number;
+  escaped?: boolean;
+  zone?: Coord & { r: number };
 }
 
-export interface TerrainFeature {
-  type: "hill" | "ridge" | "water" | "forest" | "urban" | "road";
-  points: Coord[];   // polygon vertices (closed)
-  elevation?: number; // for hills/ridges in meters
-  label?: string;
+export interface CivilZone {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 
-export interface Weather {
-  windSpeed: number;      // m/s (gameplay)
-  windDirection: number;  // degrees, direction wind blows TO
-  visibility: number;     // meters
-  temperature: number;    // °C
-  condition: "clear" | "cloudy" | "rain" | "fog" | "storm" | "snow";
-  airDensity: number;     // multiplier 0.85-1.10
-}
-
-export interface MissionSpec {
-  id: string;
-  title: string;
-  codename: string;
-  biome: Biome;
-  mapSize: number;             // meters across (square)
-  batteryStart: Coord;
-  brief: string;               // narrative briefing
-  objectives: string[];
-  constraints: {
-    maxShells: number;
-    timeLimit?: number;        // seconds, optional
-    threatLevel: number;       // 0-100 starting threat
-    civilianRisk: boolean;
-  };
-  targets: TargetSpec[];
-  terrain: TerrainFeature[];
-  weather: Weather;
-  rewardXp: number;
-  rewardResources: number;
-  rewardUnlocks?: string[];
-  narrativeOutro: string;
-  factionContext: FactionId;
-  campaignChapter: number;
+export interface FiredShell {
+  path: TrajectoryPoint[];
+  impact: Coord;
+  radius: number;
+  out: boolean;
+  blocked?: boolean;
 }
 
 export interface TrajectoryPoint {
-  x: number;       // east meters
-  y: number;       // north meters
-  z: number;       // altitude meters
-  t: number;       // time seconds
+  x: number;
+  y: number;
+  z: number;
+  g: number;
+  s: number;
+  d: number;
 }
 
 export interface SimulationResult {
   impact: Coord;
-  altitude: number;            // meters above launch
-  timeOfFlight: number;       // s
-  maxAltitude: number;
-  trajectory: TrajectoryPoint[];
-  deviation: number;           // actual radial deviation from aim point (m)
-  hitTargetId?: string;
-  damage: number;              // 0-100 dealt
-  shellType: ShellType;
-  warnings: string[];
+  out: boolean;
+  blocked: boolean;
+  range: number;
+  tof: number;
+  apex: number;
+  path: TrajectoryPoint[];
+  drift: number;
 }
 
-export interface FiredShot {
+export interface ShotRecord {
+  n: number;
+  az: number;
+  el: number;
+  ch: number;
+  ammo: AmmoId;
+  rep: string;
+  hit: boolean;
+  t: number;
+}
+
+export interface LogEntry {
+  t: number;
+  k: "info" | "good" | "warn" | "bad";
+  txt: string;
+}
+
+export interface MissionParams {
+  az: number;
+  el: number;
+  ch: number;
+  ammo: AmmoId;
+  salvo: number;
+}
+
+export interface MissionState {
+  def: MissionDef;
+  seed: number;
+  biome: BiomeId;
+  ridge: boolean;
+  turn: number;
+  maxTurns: number;
+  status: "active" | "won" | "lost";
+  why?: string;
+  bat: Coord;
+  det: number;
+  incoming: { x: number; y: number; turns: number } | null;
+  smoke: number;
+  maxInt: number;
+  integrity: number;
+  wind: { dir: number; speed: number; range: [number, number]; trend: number };
+  weather: "clair" | "pluie" | "brume" | "tempete";
+  targets: Target[];
+  civil: CivilZone[];
+  ally: Coord | null;
+  fog: number[];
+  log: LogEntry[];
+  shots: ShotRecord[];
+  impacts: { x: number; y: number; n: number }[];
+  cfg: MissionParams[];
+  des: { id: number } | Coord | null;
+  params: MissionParams;
+  st: {
+    shots: number;
+    hits: number;
+    civil: number;
+    moves: number;
+    strikes: number;
+    kills: number;
+  };
+}
+
+export interface MissionDef {
   id: string;
-  timestamp: number;
-  elevation: number;
-  azimuth: number;
-  charge: number;
-  shellType: ShellType;
-  result: SimulationResult;
-}
-
-export interface MissionResult {
-  missionId: string;
-  victory: boolean;
-  targetsDestroyed: number;
-  targetsTotal: number;
-  shotsFired: number;
-  shellsUsed: number;
-  accuracy: number;            // percent hits on target
-  threatReached: number;
-  detected: boolean;
-  batteryMoved: number;
-  timeTaken: number;
-  rewardXp: number;
-  rewardResources: number;
-  rating: "S" | "A" | "B" | "C" | "D";
-  narrativeOutro: string;
-}
-
-export interface CampaignNode {
-  id: string;
-  missionId: string;
-  title: string;
-  chapter: number;
-  chapterTitle: string;
+  name: string;
+  terr: string;
+  type: MissionType;
+  seed: number;
+  turns: number;
+  rank: number;
+  tg: [TargetType, number][];
+  reward: number;
+  xp: number;
+  sec: string[];
+  unlock?: string;
+  wind?: [number, number];
+  who: string;
   brief: string;
-  faction: FactionId;
-  unlockedBy: string[];
-  unlocks: string[];
-  isMain: boolean;
+  civil?: number;
+  ridge?: boolean;
+  unknown?: boolean;
+  isStory?: boolean;
+}
+
+export interface Territory {
+  id: string;
+  name: string;
+  biome: BiomeId;
+  poly: string;
+  fac: FactionId;
+}
+
+export interface CampaignEvent {
+  id: string;
+  title: string;
+  who: string;
+  text: string;
+  opts: {
+    label: string;
+    need?: { credits?: number; he?: number; fuel?: number };
+    eff: {
+      credits?: number;
+      fuel?: number;
+      smoke?: number;
+      drones?: number;
+      he?: number;
+      guide?: number;
+      frag?: number;
+      rep?: Partial<Record<FactionId, number>>;
+      flag?: string;
+    };
+    res: string;
+  }[];
 }
 
 export interface PlayerProfile {
-  commanderName: string;
-  rankIndex: number;
+  v: number;
+  diff: DifficultyId;
   xp: number;
-  resources: number;
-  reputation: Record<FactionId, number>;
-  unlockedHowitzers: string[];
-  unlockedShells: ShellType[];
-  completedMissions: string[];
-  totalShotsFired: number;
-  totalHits: number;
-  totalMissionsCompleted: number;
-  bestRating: Record<string, MissionResult["rating"]>;
+  credits: number;
+  fuel: number;
+  ammo: Record<AmmoId, number>;
+  smoke: number;
+  drones: number;
+  upgrades: Record<string, number>;
+  rep: Record<FactionId, number>;
+  terr: Record<string, { control: number; unlocked: boolean }>;
+  day: number;
+  story: number;
+  flags: Record<string, boolean>;
+  contracts: MissionDef[];
+  news: { d: number; txt: string }[];
+  stats: {
+    shots: number;
+    orders: number;
+    hits: number;
+    moves: number;
+    won: number;
+    lost: number;
+    stars: number;
+    best: number;
+    civil: number;
+    earned: number;
+  };
+  mission: MissionState | null;
+  pendingEvent: string | null;
+  history: { name: string; terr: string; won: boolean; stars: number; score: number; day: number }[];
+  focus: string | null;
+  commanderName: string;
 }
 
-export interface BatteryState {
-  position: Coord;
-  howitzerId: string;
-  shells: Record<ShellType, number>;
-  detected: boolean;
-  threatLevel: number;
-  movesCount: number;
-}
-
-export interface GameSave {
-  version: number;
-  player: PlayerProfile;
-  battery: BatteryState | null;
-  activeMissionId: string | null;
-  currentNodeId: string | null;
-  createdAt: number;
-  updatedAt: number;
+export interface Debrief {
+  won: boolean;
+  why?: string;
+  name: string;
+  score: number;
+  stars: number;
+  credits: number;
+  xp: number;
+  sec: { text: string; done: boolean }[];
+  st: MissionState["st"];
+  turns: number;
+  integrity: number;
+  story: boolean;
+  unlocked?: string;
+  rankUp?: string;
+  finale?: boolean;
+  repair?: number;
 }

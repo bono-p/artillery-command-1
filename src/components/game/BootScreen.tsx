@@ -1,22 +1,23 @@
-// ARTILLERY COMMAND — Écran de démarrage
+// ARTILLERY COMMAND v2 — Écran de démarrage
 "use client";
 
 import { useState, useEffect } from "react";
 import { useGame } from "@/game/store";
-import { Crosshair, Flag, Play, RotateCcw, ChevronRight } from "lucide-react";
-import { FACTION_LIST } from "@/game/constants";
+import { loadSave } from "@/game/campaign";
+import { DIFFICULTIES, FACTION_LIST } from "@/game/constants";
+import type { DifficultyId } from "@/game/types";
 
 export function BootScreen() {
-  const newGame = useGame((s) => s.newGame);
+  const newGameAction = useGame((s) => s.newGameAction);
   const continueGame = useGame((s) => s.continueGame);
-  const hasSave = useGame((s) => s.hasSave);
+  const hasSave = typeof window !== "undefined" && !!loadSave();
   const resetSave = useGame((s) => s.resetSave);
   const [name, setName] = useState("");
+  const [diff, setDiff] = useState<DifficultyId>("veteran");
   const [showNew, setShowNew] = useState(false);
   const [bootProgress, setBootProgress] = useState(0);
   const [booted, setBooted] = useState(false);
 
-  // Animated boot sequence
   useEffect(() => {
     let p = 0;
     const id = setInterval(() => {
@@ -32,122 +33,122 @@ export function BootScreen() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden scanlines">
-      {/* Background grid pulse */}
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute inset-0 opacity-30"
           style={{
-            background:
-              "radial-gradient(circle at 50% 40%, rgba(212,160,23,0.15) 0%, transparent 60%)",
+            background: "radial-gradient(circle at 50% 40%, rgba(233,165,60,0.15) 0%, transparent 60%)",
           }}
         />
       </div>
 
       <div className="relative z-10 w-full max-w-md flex flex-col items-center">
-        {/* Logo / emblem */}
         <div className="relative mb-6">
-          <div className="h-24 w-24 rounded-full border-2 border-primary/40 flex items-center justify-center relative">
-            <Crosshair className="h-12 w-12 text-primary" />
-            <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping" style={{ animationDuration: "3s" }} />
-            {/* Compass ticks */}
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="absolute h-1 w-px bg-primary/40"
-                style={{
-                  top: "50%",
-                  left: "50%",
-                  transform: `rotate(${i * 30}deg) translateY(-48px)`,
-                  transformOrigin: "center",
-                }}
-              />
-            ))}
+          <div className="h-24 w-24 rounded-full border-2 border-[#e9a53c]/40 flex items-center justify-center relative">
+            <svg viewBox="0 0 48 48" className="h-12 w-12 text-[#e9a53c]">
+              <circle cx="24" cy="24" r="22" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
+              <circle cx="24" cy="24" r="14" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.6" />
+              <line x1="24" y1="2" x2="24" y2="46" stroke="currentColor" strokeWidth="1" opacity="0.5" />
+              <line x1="2" y1="24" x2="46" y2="24" stroke="currentColor" strokeWidth="1" opacity="0.5" />
+              <circle cx="24" cy="24" r="3" fill="currentColor" />
+            </svg>
+            <div
+              className="absolute inset-0 rounded-full border border-[#e9a53c]/20 animate-ping"
+              style={{ animationDuration: "3s" }}
+            />
           </div>
         </div>
 
-        <h1 className="text-2xl md:text-3xl font-bold tracking-widest text-primary text-center">
-          ARTILLERY
-        </h1>
-        <div className="text-xs md:text-sm tracking-[0.5em] text-muted-foreground uppercase mb-1">
-          Command
-        </div>
-        <div className="text-[10px] text-muted-foreground/70 tracking-widest uppercase mb-6">
-          Simulateur Tactique — Univers fictif
+        <h1 className="display text-2xl md:text-3xl font-bold tracking-[0.18em] text-[#e9a53c]">ARTILLERY</h1>
+        <div className="display text-xs md:text-sm tracking-[0.3em] text-[#4cc2b1] uppercase mb-1">COMMAND</div>
+        <div className="text-[10px] text-[#86a0a2] tracking-widest uppercase mb-6">
+          Theranie — Univers fictif
         </div>
 
         {!booted ? (
           <div className="w-full max-w-xs">
-            <div className="text-[10px] uppercase tracking-widest text-muted-foreground/70 mb-1 text-center">
-              Initialisation du centre de commandement
-            </div>
-            <div className="h-1 bg-muted/40 rounded-full overflow-hidden">
+            <div className="lbl text-center mb-1">Initialisation du centre de commandement</div>
+            <div className="h-1 bg-[#16252b] rounded-full overflow-hidden">
               <div
-                className="h-full bg-primary transition-all duration-100"
+                className="h-full bg-[#e9a53c] transition-all duration-100"
                 style={{ width: `${bootProgress}%` }}
               />
             </div>
-            <div className="text-[9px] text-muted-foreground/60 mt-1 text-center tnum">
-              {bootProgress.toFixed(0)}%
-            </div>
+            <div className="text-[9px] text-[#86a0a2] mt-1 text-center tnum">{bootProgress.toFixed(0)}%</div>
           </div>
         ) : !showNew ? (
           <div className="w-full flex flex-col gap-2">
             {hasSave && (
               <button
                 onClick={continueGame}
-                className="group w-full px-4 py-3 border border-primary/60 bg-primary/10 hover:bg-primary/20 transition-colors flex items-center justify-between rounded-sm"
+                className="group w-full px-4 py-3 border border-[#e9a53c]/60 bg-[#e9a53c]/10 hover:bg-[#e9a53c]/20 transition-colors flex items-center justify-between rounded-sm display font-semibold text-[#e9a53c]"
               >
-                <span className="flex items-center gap-2 text-sm font-semibold text-primary">
-                  <Play className="h-4 w-4" fill="currentColor" /> Continuer la campagne
-                </span>
-                <ChevronRight className="h-4 w-4 text-primary group-hover:translate-x-1 transition-transform" />
+                <span>Continuer la campagne</span>
+                <span className="text-xs text-[#86a0a2]">→</span>
               </button>
             )}
             <button
               onClick={() => setShowNew(true)}
-              className="w-full px-4 py-3 border border-border/70 hover:border-primary/40 hover:bg-muted/40 transition-colors text-sm flex items-center justify-between rounded-sm"
+              className="w-full px-4 py-3 border border-[#273b42] hover:border-[#e9a53c]/40 hover:bg-[#16252b]/60 transition-colors display flex items-center justify-between rounded-sm"
             >
-              <span className="flex items-center gap-2">
-                <Flag className="h-4 w-4 text-primary" /> Nouvelle campagne
-              </span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+              <span>Nouvelle campagne</span>
+              <span className="text-xs text-[#86a0a2]">→</span>
             </button>
             {hasSave && (
               <button
                 onClick={() => {
-                  if (confirm("Effacer la sauvegarde ? Cette action est irréversible.")) resetSave();
+                  if (confirm("Effacer la sauvegarde ? Irréversible.")) resetSave();
                 }}
-                className="mt-2 text-[10px] uppercase tracking-widest text-muted-foreground/60 hover:text-red-400 transition-colors"
+                className="mt-2 text-[10px] uppercase tracking-widest text-[#86a0a2] hover:text-[#e2574a] transition-colors"
               >
-                <RotateCcw className="h-3 w-3 inline mr-1" />
-                Réinitialiser la sauvegarde
+                Réinitialiser
               </button>
             )}
           </div>
         ) : (
           <div className="w-full flex flex-col gap-3">
-            <label className="text-[10px] uppercase tracking-widest text-muted-foreground/80">
-              Identifiant du commandant
-            </label>
+            <label className="lbl">Identifiant du commandant</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={28}
-              placeholder="ex : Capitaine R. Veck"
-              className="w-full px-3 py-2 bg-input border border-border/70 focus:border-primary/60 focus:outline-none rounded-sm text-sm tnum"
+              placeholder="ex : Capitaine Vreck"
+              className="w-full px-3 py-2 bg-[#0b1316] border border-[#3a555d] focus:border-[#e9a53c] focus:outline-none rounded-sm tnum"
               autoFocus
             />
-            <div className="flex gap-2">
+            <label className="lbl">Niveau de difficulté</label>
+            <div className="grid grid-cols-3 gap-1">
+              {(Object.keys(DIFFICULTIES) as DifficultyId[]).map((id) => {
+                const d = DIFFICULTIES[id];
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setDiff(id)}
+                    className={`px-2 py-2 border rounded-sm display text-sm ${
+                      diff === id
+                        ? "border-[#e9a53c] bg-[#e9a53c]/15 text-[#e9a53c]"
+                        : "border-[#273b42] text-[#86a0a2] hover:border-[#3a555d]"
+                    }`}
+                  >
+                    {d.name}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="text-[10px] text-[#86a0a2] leading-snug">
+              {DIFFICULTIES[diff].hint ? "Mode conseillé pour débuter : conseils de tir affichés." : "Aucun conseil — à vos risques et périls."}
+            </div>
+            <div className="flex gap-2 mt-1">
               <button
                 onClick={() => setShowNew(false)}
-                className="flex-1 px-3 py-2 border border-border/70 hover:border-border text-sm rounded-sm"
+                className="flex-1 px-3 py-2 border border-[#273b42] hover:border-[#3a555d] text-sm rounded-sm"
               >
                 Retour
               </button>
               <button
-                onClick={() => newGame(name.trim() || "Commandant Anonyme")}
-                className="flex-1 px-3 py-2 border border-primary/60 bg-primary/15 hover:bg-primary/25 text-primary font-semibold text-sm rounded-sm transition-colors"
+                onClick={() => newGameAction(diff, name.trim() || "Commandant Anonyme")}
+                className="flex-1 px-3 py-2 border border-[#e9a53c]/60 bg-[#e9a53c]/15 hover:bg-[#e9a53c]/25 text-[#e9a53c] display font-semibold text-sm rounded-sm transition-colors"
               >
                 Déployer
               </button>
@@ -155,28 +156,27 @@ export function BootScreen() {
           </div>
         )}
 
-        {/* Factions teaser */}
         <div className="mt-8 w-full">
-          <div className="text-[9px] uppercase tracking-widest text-muted-foreground/60 mb-2 text-center">
-            Belligérants du conflit d'Atalan
+          <div className="text-[9px] uppercase tracking-widest text-[#86a0a2] mb-2 text-center lbl">
+            Belligérants du conflit de Theranie
           </div>
           <div className="grid grid-cols-2 gap-1.5">
             {FACTION_LIST.map((f) => (
               <div
                 key={f.id}
-                className="flex items-center gap-2 px-2 py-1.5 border border-border/40 rounded-sm bg-card/40"
+                className="flex items-center gap-2 px-2 py-1.5 border border-[#273b42]/40 rounded-sm bg-[#111c20]/40"
               >
                 <span
-                  className="h-6 w-6 flex items-center justify-center border font-mono text-xs font-bold"
+                  className="h-6 w-6 flex items-center justify-center border display text-xs font-bold"
                   style={{ borderColor: f.color, color: f.color, background: `${f.color}15` }}
                 >
-                  {f.flagGlyph}
+                  {f.short[0]}
                 </span>
                 <div className="min-w-0">
                   <div className="text-[10px] truncate" style={{ color: f.color }}>
-                    {f.shortName}
+                    {f.short}
                   </div>
-                  <div className="text-[8px] text-muted-foreground/60 truncate">{f.flagGlyph}</div>
+                  <div className="text-[8px] text-[#86a0a2] truncate">{f.chief.split(" ").slice(-1)[0]}</div>
                 </div>
               </div>
             ))}

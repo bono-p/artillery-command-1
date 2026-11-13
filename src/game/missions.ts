@@ -1,503 +1,260 @@
-// ARTILLERY COMMAND — Données de campagne et missions
-// Univers militaire fictif d'Atalan. 7 missions principales + branches.
-import type { CampaignNode, MissionSpec, Coord, TerrainFeature, TargetSpec, Weather } from "./types";
-
-// Helpers pour construire des terrains rapidement
-function square(cx: number, cy: number, half: number): Coord[] {
-  return [
-    { x: cx - half, y: cy - half },
-    { x: cx + half, y: cy - half },
-    { x: cx + half, y: cy + half },
-    { x: cx - half, y: cy + half },
-  ];
-}
-
-function poly(coords: [number, number][]): Coord[] {
-  return coords.map(([x, y]) => ({ x, y }));
-}
+// ARTILLERY COMMAND v2 — Récit : 7 missions scénarisées + événements
+import type { MissionDef, CampaignEvent } from "./types";
 
 // ====================================================================
-// MISSIONS
+// MISSIONS PRINCIPALES — la saga de Theranie
 // ====================================================================
-const M1_TRAINING: MissionSpec = {
-  id: "m1_training",
-  title: "Opération Sablier",
-  codename: "SABLIER",
-  biome: "plain",
-  mapSize: 12000,
-  batteryStart: { x: 1500, y: 1500 },
-  brief:
-    "Bienvenue à la 7e Batterie d'Élite, commandant. Avant tout déploiement opérationnel, vous devez valider vos compétences sur le champ de tir de Livrie. Trois cibles inertes ont été disposées à portée. Détruisez-les avec un minimum de munitions. Le général Veckmann observe vos performances.",
-  objectives: [
-    "Détruire les 3 cibles d'entraînement",
-    "Maintenir le niveau de menace sous 50",
-    "Utiliser au plus 8 obus",
-  ],
-  constraints: {
-    maxShells: 12,
-    threatLevel: 5,
-    civilianRisk: false,
-  },
-  targets: [
-    { id: "t1", name: "Cible A — blindé inerte", position: { x: 8500, y: 3500 }, radius: 30, hp: 60, maxHp: 60, priority: "primary", faction: "astorie", type: "vehicle", revealed: true },
-    { id: "t2", name: "Cible B — bunker inerte", position: { x: 9500, y: 7500 }, radius: 40, hp: 90, maxHp: 90, priority: "primary", faction: "astorie", type: "structure", revealed: true },
-    { id: "t3", name: "Cible C — colonneInactive", position: { x: 7000, y: 9500 }, radius: 35, hp: 70, maxHp: 70, priority: "secondary", faction: "astorie", type: "vehicle", revealed: true },
-  ],
-  terrain: [
-    { type: "hill", points: square(4000, 8000, 600), elevation: 80, label: "Colline 801" },
-    { type: "forest", points: square(7000, 7000, 700), label: "Bois Nord" },
-    { type: "road", points: poly([[0, 3000], [12000, 4000]]), label: "Route Est-Ouest" },
-  ],
-  weather: {
-    windSpeed: 4,
-    windDirection: 90,
-    visibility: 15000,
-    temperature: 18,
-    condition: "clear",
-    airDensity: 1.0,
-  },
-  rewardXp: 100,
-  rewardResources: 50,
-  rewardUnlocks: [],
-  narrativeOutro:
-    "Le général Veckmann hoche la tête. « Vous avez le coup de main, commandant. Mais l'entraînement est une chose — la guerre en est une autre. La Confédération Drakovienne a franchi la frontière est. Votre batterie est rappelée au front. »",
-  factionContext: "astorie",
-  campaignChapter: 1,
-};
-
-const M2_BORDER: MissionSpec = {
-  id: "m2_border",
-  title: "La Frontière Est",
-  codename: "LANCE-ROUGE",
-  biome: "forest",
-  mapSize: 14000,
-  batteryStart: { x: 2000, y: 2000 },
-  brief:
-    "Les forces Drakoviennes ont franchi la frontière à l'aube. Une colonne blindée avance à travers la forêt de Veldmark vers le carrefour de Krezno. Votre batterie est la seule unité astorienne en position d'interdire le passage. Freinez-les avant qu'ils ne débouchent en plaine.",
-  objectives: [
-    "Détruire au moins 3 des 5 véhicules blindés Drakoviens",
-    "Empêcher la colonne d'atteindre la plaine (sud-est)",
-    "Ne pas être détecté (menace < 75)",
-  ],
-  constraints: {
-    maxShells: 18,
-    threatLevel: 20,
-    civilianRisk: false,
-  },
-  targets: [
-    { id: "v1", name: "Char Drak T-44", position: { x: 8000, y: 3000 }, radius: 25, hp: 80, maxHp: 80, priority: "primary", faction: "drakov", type: "vehicle", revealed: true, movable: true, speed: 80, movementPattern: "advance" },
-    { id: "v2", name: "Char Drak T-44", position: { x: 8500, y: 4000 }, radius: 25, hp: 80, maxHp: 80, priority: "primary", faction: "drakov", type: "vehicle", revealed: true, movable: true, speed: 80, movementPattern: "advance" },
-    { id: "v3", name: "Véhicule blindé Drak", position: { x: 9000, y: 5000 }, radius: 22, hp: 60, maxHp: 60, priority: "primary", faction: "drakov", type: "vehicle", revealed: true, movable: true, speed: 100, movementPattern: "advance" },
-    { id: "v4", name: "Camion ravitaillement", position: { x: 7500, y: 3500 }, radius: 20, hp: 40, maxHp: 40, priority: "secondary", faction: "drakov", type: "supply", revealed: false, movable: true, speed: 70, movementPattern: "advance" },
-    { id: "v5", name: "Char Drak T-44", position: { x: 9500, y: 4500 }, radius: 25, hp: 80, maxHp: 80, priority: "secondary", faction: "drakov", type: "vehicle", revealed: false, movable: true, speed: 80, movementPattern: "advance" },
-  ],
-  terrain: [
-    { type: "forest", points: square(6000, 4000, 2500), label: "Forêt de Veldmark" },
-    { type: "road", points: poly([[7000, 0], [11000, 14000]]), label: "Route Krezno" },
-    { type: "hill", points: square(3000, 9000, 500), elevation: 60, label: "Colline 901" },
-    { type: "water", points: square(11000, 2000, 800), label: "Rivière Bleune" },
-  ],
-  weather: {
-    windSpeed: 8,
-    windDirection: 270,
-    visibility: 8000,
-    temperature: 12,
-    condition: "cloudy",
-    airDensity: 1.02,
-  },
-  rewardXp: 200,
-  rewardResources: 80,
-  rewardUnlocks: [],
-  narrativeOutro:
-    "La colonne est brisée. Les survivants Drakoviens se replient en désordre. Mais à l'horizon, l'écho d'une autre batterie ennemie se fait entendre. La Ligue Marchande de Velka, jadis neutre, semble désormais impliquée...",
-  factionContext: "drakov",
-  campaignChapter: 2,
-};
-
-const M3_COUNTER_BATTERY: MissionSpec = {
-  id: "m3_counter",
-  title: "Contre-Batterie",
-  codename: "ÉCHO",
-  biome: "mountain",
-  mapSize: 16000,
-  batteryStart: { x: 2000, y: 8000 },
-  brief:
-    "Les Drakoviens ont installé deux batteries d'artillerie dans le massif de Korrath. Elles pilonnent nos lignes sans relâche. Contre-batterie : localisez et neutralisez ces pièces. L'usage d'obus illuminants est recommandé pour révéler leurs positions initialement masquées.",
-  objectives: [
-    "Détruire les 2 pièces d'artillerie Drakoviennes",
-    "Révéler et détruire le poste d'observation ennemi",
-    "Limiter les pertes civiles (village de Korrath proche)",
-  ],
-  constraints: {
-    maxShells: 20,
-    threatLevel: 35,
-    civilianRisk: true,
-  },
-  targets: [
-    { id: "ab1", name: "Batterie Drak Alpha", position: { x: 11000, y: 11000 }, radius: 35, hp: 100, maxHp: 100, priority: "primary", faction: "drakov", type: "artillery", revealed: false },
-    { id: "ab2", name: "Batterie Drak Bravo", position: { x: 13000, y: 8000 }, radius: 35, hp: 100, maxHp: 100, priority: "primary", faction: "drakov", type: "artillery", revealed: false },
-    { id: "obs1", name: "Poste d'observation Drak", position: { x: 14000, y: 13000 }, radius: 20, hp: 50, maxHp: 50, priority: "secondary", faction: "drakov", type: "structure", revealed: false },
-    { id: "vil1", name: "Village de Korrath (civil)", position: { x: 10000, y: 9500 }, radius: 60, hp: 100, maxHp: 100, priority: "tertiary", faction: "astorie", type: "structure", revealed: true },
-  ],
-  terrain: [
-    { type: "mountain", points: square(12000, 10000, 2500), elevation: 600, label: "Mont Korrath" },
-    { type: "mountain", points: square(3000, 11000, 1500), elevation: 400, label: "Pic Noir" },
-    { type: "urban", points: square(10000, 9500, 600), label: "Korrath (civil)" },
-    { type: "road", points: poly([[0, 8000], [16000, 10000]]), label: "Route de crête" },
-  ],
-  weather: {
-    windSpeed: 12,
-    windDirection: 200,
-    visibility: 6000,
-    temperature: 4,
-    condition: "fog",
-    airDensity: 0.95,
-  },
-  rewardXp: 300,
-  rewardResources: 120,
-  rewardUnlocks: ["d30l"],
-  narrativeOutro:
-    "Le massif de Korrath se tait. Mais un message codé intercepté révèle que la Ligue Marchande de Velka fournit désormais des armes guidées à la Drakovie. Le commandement astorien vous promeut et vous confie une nouvelle pièce : le D-30L « Lance-Long ».",
-  factionContext: "drakov",
-  campaignChapter: 3,
-};
-
-const M4_URBAN: MissionSpec = {
-  id: "m4_urban",
-  title: "Siège de Marakov",
-  codename: "CITÉ-CENDRE",
-  biome: "urban",
-  mapSize: 10000,
-  batteryStart: { x: 1200, y: 5000 },
-  brief:
-    "La cité fictive de Marakov est assiégée par les forces Velka. Des tireurs et des mortiers occupent les quartiers est. Votre batterie doit appuyer l'assaut ami en neutralisant les nids de résistance — avec une précision chirurgicale. Tout dégât civil sera sanctionné par une chute de réputation et des pertes stratégiques.",
-  objectives: [
-    "Détruire le mortier Velka (sans toucher les civils)",
-    "Détruire le poste de commandement Velka",
-    "Préserver les 2 bâtiments civils marqués",
-  ],
-  constraints: {
-    maxShells: 14,
-    threatLevel: 30,
-    civilianRisk: true,
-  },
-  targets: [
-    { id: "u_mortar", name: "Mortier Velka", position: { x: 7500, y: 3000 }, radius: 20, hp: 50, maxHp: 50, priority: "primary", faction: "velka", type: "artillery", revealed: true },
-    { id: "u_cmd", name: "PC Velka", position: { x: 8200, y: 6500 }, radius: 30, hp: 120, maxHp: 120, priority: "primary", faction: "velka", type: "structure", revealed: true },
-    { id: "u_sniper", name: "Nid de tireur Velka", position: { x: 6500, y: 4500 }, radius: 15, hp: 40, maxHp: 40, priority: "secondary", faction: "velka", type: "infantry", revealed: false },
-    { id: "u_civ1", name: "Hôpital de Marakov", position: { x: 6000, y: 5500 }, radius: 80, hp: 100, maxHp: 100, priority: "tertiary", faction: "astorie", type: "structure", revealed: true },
-    { id: "u_civ2", name: "École de Marakov", position: { x: 7000, y: 7000 }, radius: 70, hp: 100, maxHp: 100, priority: "tertiary", faction: "astorie", type: "structure", revealed: true },
-  ],
-  terrain: [
-    { type: "urban", points: square(5000, 5000, 3500), label: "Cité de Marakov" },
-    { type: "road", points: poly([[0, 5000], [10000, 5000]]), label: "Avenue Centrale" },
-    { type: "road", points: poly([[5000, 0], [5000, 10000]]), label: "Rue du Port" },
-    { type: "water", points: square(9000, 0, 600), label: "Fleuve Slava" },
-  ],
-  weather: {
-    windSpeed: 6,
-    windDirection: 135,
-    visibility: 5000,
-    temperature: 8,
-    condition: "rain",
-    airDensity: 1.03,
-  },
-  rewardXp: 350,
-  rewardResources: 150,
-  rewardUnlocks: [],
-  narrativeOutro:
-    "Marakov est libérée. La population acclame la 7e Batterie. Mais derrière le rideau de fumée, un rapport du renseignement évoque une nouvelle faction opérant dans les plaines : les Forces Libres de Korr, autrefois alliées, semblent désormais hostiles...",
-  factionContext: "velka",
-  campaignChapter: 4,
-};
-
-const M5_DESERT: MissionSpec = {
-  id: "m5_desert",
-  title: "Sables d'Ashal",
-  codename: "MIRAGE",
-  biome: "desert",
-  mapSize: 20000,
-  batteryStart: { x: 2000, y: 18000 },
-  brief:
-    "Le désert d'Ashal recèle un dépôt stratégique Velka ravitaillant les forces ennemies. Une attaque frontale serait suicidaire : la chaleur, le sable, et les patrouilles rendent toute approche impossible. Votre batterie doit frapper à longue distance depuis la périphérie. La visibilité est excellente — mais cela vaut aussi pour l'ennemi.",
-  objectives: [
-    "Détruire le dépôt de munitions Velka",
-    "Détruire au moins 2 patrouilles blindées",
-    "Ne pas être détecté avant la 3e frappe",
-  ],
-  constraints: {
-    maxShells: 25,
-    threatLevel: 25,
-    civilianRisk: false,
-  },
-  targets: [
-    { id: "d_depot", name: "Dépôt Velka", position: { x: 16000, y: 3000 }, radius: 50, hp: 150, maxHp: 150, priority: "primary", faction: "velka", type: "structure", revealed: true },
-    { id: "d_p1", name: "Patrouille Velka", position: { x: 12000, y: 8000 }, radius: 22, hp: 70, maxHp: 70, priority: "primary", faction: "velka", type: "vehicle", revealed: true, movable: true, speed: 120, movementPattern: "patrol" },
-    { id: "d_p2", name: "Patrouille Velka", position: { x: 14000, y: 12000 }, radius: 22, hp: 70, maxHp: 70, priority: "secondary", faction: "velka", type: "vehicle", revealed: true, movable: true, speed: 120, movementPattern: "patrol" },
-    { id: "d_p3", name: "Patrouille Velka", position: { x: 10000, y: 14000 }, radius: 22, hp: 70, maxHp: 70, priority: "secondary", faction: "velka", type: "vehicle", revealed: true, movable: true, speed: 120, movementPattern: "patrol" },
-    { id: "d_radar", name: "Radar Velka", position: { x: 17000, y: 6000 }, radius: 25, hp: 60, maxHp: 60, priority: "secondary", faction: "velka", type: "structure", revealed: true },
-  ],
-  terrain: [
-    { type: "hill", points: square(8000, 6000, 1200), elevation: 120, label: "Dune Rouge" },
-    { type: "hill", points: square(15000, 11000, 800), elevation: 70, label: "Roc Noir" },
-    { type: "road", points: poly([[0, 18000], [18000, 4000]]), label: "Piste Caravanière" },
-  ],
-  weather: {
-    windSpeed: 10,
-    windDirection: 45,
-    visibility: 18000,
-    temperature: 38,
-    condition: "clear",
-    airDensity: 0.9,
-  },
-  rewardXp: 400,
-  rewardResources: 180,
-  rewardUnlocks: [],
-  narrativeOutro:
-    "Le dépôt Velka brûle dans le ciel du désert. La Ligue Marchande vacille. Mais un ordre secret vous parvient du haut-commandement : les Forces Libres de Korr, jadis alliées d'Astorie, ont signé un pacte avec Velka. Trahison. Vous êtes envoyé pour mater la rébellion.",
-  factionContext: "velka",
-  campaignChapter: 5,
-};
-
-const M6_KORR: MissionSpec = {
-  id: "m6_korr",
-  title: "Rébellion de Korr",
-  codename: "FER-ROUGE",
-  biome: "forest",
-  mapSize: 18000,
-  batteryStart: { x: 1500, y: 1500 },
-  brief:
-    "Les Forces Libres de Korr ont retourné leur alliance. Leurs groupes de partisans se sont retranchés dans la forêt de Veldmark-Sud, harcelant nos convois. Trois camps rebelles doivent être réduits. Méfiance : ils utilisent des tactiques de guérilla, se déplacent vite, et la forêt masque leur position.",
-  objectives: [
-    "Détruire les 3 camps de partisans Korr",
-    "Détruire le poste de commandement rebelle",
-    "Éviter que les rebelles ne fuient (les neutraliser avant qu'ils ne sortent de la carte)",
-  ],
-  constraints: {
-    maxShells: 30,
-    threatLevel: 40,
-    civilianRisk: false,
-  },
-  targets: [
-    { id: "k_c1", name: "Camp partisan Nord", position: { x: 12000, y: 13000 }, radius: 40, hp: 90, maxHp: 90, priority: "primary", faction: "korr", type: "structure", revealed: true },
-    { id: "k_c2", name: "Camp partisan Est", position: { x: 15000, y: 9000 }, radius: 40, hp: 90, maxHp: 90, priority: "primary", faction: "korr", type: "structure", revealed: true },
-    { id: "k_c3", name: "Camp partisan Sud", position: { x: 11000, y: 5000 }, radius: 40, hp: 90, maxHp: 90, priority: "primary", faction: "korr", type: "structure", revealed: true },
-    { id: "k_cmd", name: "PC rebelle Korr", position: { x: 14000, y: 15000 }, radius: 30, hp: 130, maxHp: 130, priority: "primary", faction: "korr", type: "structure", revealed: false },
-    { id: "k_p1", name: "Partisans mobiles", position: { x: 8000, y: 10000 }, radius: 20, hp: 50, maxHp: 50, priority: "secondary", faction: "korr", type: "infantry", revealed: true, movable: true, speed: 150, movementPattern: "patrol" },
-    { id: "k_p2", name: "Partisans mobiles", position: { x: 13000, y: 11000 }, radius: 20, hp: 50, maxHp: 50, priority: "secondary", faction: "korr", type: "infantry", revealed: true, movable: true, speed: 150, movementPattern: "patrol" },
-  ],
-  terrain: [
-    { type: "forest", points: square(9000, 9000, 5500), label: "Forêt de Veldmark-Sud" },
-    { type: "hill", points: square(14000, 14000, 800), elevation: 100, label: "Relief Korr" },
-    { type: "water", points: square(3000, 11000, 1000), label: "Lac Bleune" },
-    { type: "road", points: poly([[0, 5000], [18000, 11000]]), label: "Route Sud" },
-  ],
-  weather: {
-    windSpeed: 7,
-    windDirection: 180,
-    visibility: 7000,
-    temperature: 14,
-    condition: "cloudy",
-    airDensity: 1.0,
-  },
-  rewardXp: 500,
-  rewardResources: 220,
-  rewardUnlocks: ["k9v"],
-  narrativeOutro:
-    "La rébellion de Korr est matée. Les survivants se rallient à nouveau au drapeau astorien. En reconnaissance, le haut-commandement vous promeut et vous confie le K-9 Voiron « Tempest » — l'obusier automoteur le plus moderne de l'arsenal. Mais à l'est, la Confédération Drakovienne prépare son offensive finale...",
-  factionContext: "korr",
-  campaignChapter: 6,
-};
-
-const M7_FINAL: MissionSpec = {
-  id: "m7_final",
-  title: "L'Offensive Dernière",
-  codename: "JUGEMENT",
-  biome: "plain",
-  mapSize: 24000,
-  batteryStart: { x: 1500, y: 12000 },
-  brief:
-    "C'est l'heure de vérité. La Confédération Drakovienne a massé son armée sur la plaine de Livrie pour une dernière offensive. Quatre batteries d'artillerie ennemie, des chars, un train blindé, et le PC du Maréchal Dragovitch lui-même. Votre batterie d'élite est la clé de la victoire. Détruisez le commandement ennemi — et la guerre s'achèvera.",
-  objectives: [
-    "Détruire le PC du Maréchal Dragovitch",
-    "Détruire au moins 3 des 4 batteries Drakoviennes",
-    "Neutraliser le train blindé",
-    "Survivre (menace < 90 à la fin)",
-  ],
-  constraints: {
-    maxShells: 40,
-    threatLevel: 50,
-    civilianRisk: false,
-  },
-  targets: [
-    { id: "f_drag", name: "PC Maréchal Dragovitch", position: { x: 20000, y: 12000 }, radius: 45, hp: 250, maxHp: 250, priority: "primary", faction: "drakov", type: "structure", revealed: true },
-    { id: "f_b1", name: "Batterie Drak I", position: { x: 17000, y: 8000 }, radius: 30, hp: 110, maxHp: 110, priority: "primary", faction: "drakov", type: "artillery", revealed: true },
-    { id: "f_b2", name: "Batterie Drak II", position: { x: 18000, y: 15000 }, radius: 30, hp: 110, maxHp: 110, priority: "primary", faction: "drakov", type: "artillery", revealed: true },
-    { id: "f_b3", name: "Batterie Drak III", position: { x: 22000, y: 9000 }, radius: 30, hp: 110, maxHp: 110, priority: "primary", faction: "drakov", type: "artillery", revealed: false },
-    { id: "f_b4", name: "Batterie Drak IV", position: { x: 21000, y: 16000 }, radius: 30, hp: 110, maxHp: 110, priority: "primary", faction: "drakov", type: "artillery", revealed: false },
-    { id: "f_train", name: "Train blindé Drak", position: { x: 12000, y: 14000 }, radius: 50, hp: 200, maxHp: 200, priority: "primary", faction: "drakov", type: "vehicle", revealed: true, movable: true, speed: 200, movementPattern: "advance" },
-    { id: "f_t1", name: "Char lourd Drak T-90", position: { x: 14000, y: 10000 }, radius: 28, hp: 100, maxHp: 100, priority: "secondary", faction: "drakov", type: "vehicle", revealed: true, movable: true, speed: 60, movementPattern: "advance" },
-    { id: "f_t2", name: "Char lourd Drak T-90", position: { x: 15000, y: 13000 }, radius: 28, hp: 100, maxHp: 100, priority: "secondary", faction: "drakov", type: "vehicle", revealed: true, movable: true, speed: 60, movementPattern: "advance" },
-  ],
-  terrain: [
-    { type: "hill", points: square(18000, 12000, 1500), elevation: 80, label: "Plateau Central" },
-    { type: "hill", points: square(8000, 6000, 1000), elevation: 100, label: "Colline 601" },
-    { type: "forest", points: square(11000, 9000, 1200), label: "Bois Sanglant" },
-    { type: "road", points: poly([[0, 12000], [22000, 12000]]), label: "Grande Route Est" },
-    { type: "road", points: poly([[14000, 0], [14000, 24000]]), label: "Axe Nord-Sud" },
-  ],
-  weather: {
-    windSpeed: 5,
-    windDirection: 90,
-    visibility: 12000,
-    temperature: 16,
-    condition: "cloudy",
-    airDensity: 1.0,
-  },
-  rewardXp: 800,
-  rewardResources: 400,
-  rewardUnlocks: [],
-  narrativeOutro:
-    "Le Maréchal Dragovitch est mort, son PC en flammes. La Confédération Drakovienne signe l'armistice le lendemain. La guerre d'Atalan s'achève. La 7e Batterie d'Élite entre dans la légende. Sur la place de la République fédérée d'Astorie, le général Veckmann vous remet l'Épée de Commandement. Vous êtes désormais General de Brigade.",
-  factionContext: "drakov",
-  campaignChapter: 7,
-};
-
-export const MISSIONS: Record<string, MissionSpec> = {
-  m1_training: M1_TRAINING,
-  m2_border: M2_BORDER,
-  m3_counter: M3_COUNTER_BATTERY,
-  m4_urban: M4_URBAN,
-  m5_desert: M5_DESERT,
-  m6_korr: M6_KORR,
-  m7_final: M7_FINAL,
-};
-
-// ====================================================================
-// CAMPAGNE — arbre narratif
-// ====================================================================
-export const CAMPAIGN_NODES: CampaignNode[] = [
+export const STORY: MissionDef[] = [
   {
-    id: "n1",
-    missionId: "m1_training",
-    title: M1_TRAINING.title,
-    chapter: 1,
-    chapterTitle: "Chapitre I — L'École du Feu",
-    brief: "Champ de tir de Livrie. Premier déploiement.",
-    faction: "astorie",
-    unlockedBy: [],
-    unlocks: ["n2"],
-    isMain: true,
+    id: "s0",
+    name: "Le Baptême du Feu",
+    terr: "vallee",
+    type: "destruction",
+    seed: 1107,
+    turns: 14,
+    rank: 0,
+    tg: [["depot", 1], ["bunker", 1]],
+    reward: 300,
+    xp: 130,
+    sec: ["shots:8", "noStrike"],
+    unlock: "kharga",
+    wind: [2, 5],
+    who: "Maréchale Vaugrenard",
+    brief:
+      "Lieutenant. L'Union Sarkovienne a franchi la rivière d'Aurel pendant la nuit. Un dépôt et une casemate sont à portée de vos tubes. Prouvez-moi que je peux vous confier plus qu'une section. Désignez, calculez, corrigez. Et bougez avant qu'ils ne vous localisent.",
   },
   {
-    id: "n2",
-    missionId: "m2_border",
-    title: M2_BORDER.title,
-    chapter: 2,
-    chapterTitle: "Chapitre II — L'Invasion",
-    brief: "Forêt de Veldmark. La frontière est tombe.",
-    faction: "drakov",
-    unlockedBy: ["n1"],
-    unlocks: ["n3"],
-    isMain: true,
+    id: "s1",
+    name: "Les Sables de Kharga",
+    terr: "kharga",
+    type: "interdiction",
+    seed: 2291,
+    turns: 14,
+    rank: 0,
+    tg: [["convoi", 1], ["depot", 1], ["radar", 0]],
+    reward: 420,
+    xp: 160,
+    sec: ["optional", "shots:10"],
+    unlock: "veylebois",
+    wind: [7, 13],
+    who: "Maréchale Vaugrenard",
+    brief:
+      "Sarkov ravitaille son front par les pistes de Kharga. Un convoi traverse le secteur ce matin : il ne doit pas en sortir. Le vent du désert est traître — corrigez large. La Ligue Sorelienne observe : le Comte Sorel jugera si vous êtes un client digne de ce nom.",
   },
   {
-    id: "n3",
-    missionId: "m3_counter",
-    title: M3_COUNTER_BATTERY.title,
-    chapter: 3,
-    chapterTitle: "Chapitre III — Les Montagnes",
-    brief: "Massif de Korrath. Contre-batterie en haute altitude.",
-    faction: "drakov",
-    unlockedBy: ["n2"],
-    unlocks: ["n4"],
-    isMain: true,
+    id: "s2",
+    name: "Sous la Canopée",
+    terr: "veylebois",
+    type: "recon",
+    seed: 3344,
+    turns: 16,
+    rank: 1,
+    tg: [["pc", 1], ["depot", 1], ["batterie", 0]],
+    reward: 520,
+    xp: 190,
+    sec: ["optional", "noStrike"],
+    unlock: "orsk",
+    unknown: true,
+    who: "Mère Ysolde Veyl",
+    brief:
+      "Vous êtes chez nous, artilleur. Le Directoire Sarkovien cache un poste de commandement sous nos arbres. Nous connaissons la forêt, pas l'emplacement exact : envoyez vos drones avant de gaspiller vos obus. La canopée vous dissimule — mais elle ne pardonnera pas un tir à l'aveugle.",
   },
   {
-    id: "n4",
-    missionId: "m4_urban",
-    title: M4_URBAN.title,
-    chapter: 4,
-    chapterTitle: "Chapitre IV — La Cité",
-    brief: "Cité de Marakov. Siège urbain, précision requise.",
-    faction: "velka",
-    unlockedBy: ["n3"],
-    unlocks: ["n5"],
-    isMain: true,
+    id: "s3",
+    name: "La Crête d'Orsk",
+    terr: "orsk",
+    type: "destruction",
+    seed: 4417,
+    turns: 16,
+    rank: 1,
+    ridge: true,
+    tg: [["radar", 1], ["bunker", 1], ["batterie", 1]],
+    reward: 650,
+    xp: 220,
+    sec: ["shots:12", "noStrike"],
+    unlock: "norden",
+    wind: [5, 11],
+    who: "Maréchale Vaugrenard",
+    brief:
+      "Les positions d'Orsk sont derrière la crête. Un tir tendu s'écrasera sur le versant : il vous faudra un tir plongeant, donc un long temps de vol, donc beaucoup de dérive. Le radar d'abord, sinon leur batterie vous aura repéré avant votre troisième coup. Soyez méthodique.",
   },
   {
-    id: "n5",
-    missionId: "m5_desert",
-    title: M5_DESERT.title,
-    chapter: 5,
-    chapterTitle: "Chapitre V — Le Désert",
-    brief: "Désert d'Ashal. Frappe longue portée en milieu hostile.",
-    faction: "velka",
-    unlockedBy: ["n4"],
-    unlocks: ["n6"],
-    isMain: true,
+    id: "s4",
+    name: "Les Toits de Nordenbourg",
+    terr: "norden",
+    type: "destruction",
+    seed: 5523,
+    turns: 16,
+    rank: 2,
+    civil: 5,
+    tg: [["pc", 1], ["batterie", 1], ["depot", 0]],
+    reward: 800,
+    xp: 260,
+    sec: ["noCivil", "optional"],
+    who: "Maréchale Vaugrenard",
+    brief:
+      "Nordenbourg est encore habitée. Sarkov le sait et s'en sert comme bouclier. Je veux son poste de commandement, et je veux pouvoir regarder les habitants en face ensuite. Chaque obus en zone civile nous coûtera plus cher qu'une bataille perdue. Précision chirurgicale, Lieutenant.",
   },
   {
-    id: "n6",
-    missionId: "m6_korr",
-    title: M6_KORR.title,
-    chapter: 6,
-    chapterTitle: "Chapitre VI — La Trahison",
-    brief: "Forêt de Veldmark-Sud. Rébellion de Korr à mater.",
-    faction: "korr",
-    unlockedBy: ["n5"],
-    unlocks: ["n7"],
-    isMain: true,
-  },
-  {
-    id: "n7",
-    missionId: "m7_final",
-    title: M7_FINAL.title,
-    chapter: 7,
-    chapterTitle: "Chapitre VII — Jugement",
-    brief: "Plaine de Livrie. Offensive finale Drakovienne.",
-    faction: "drakov",
-    unlockedBy: ["n6"],
-    unlocks: [],
-    isMain: true,
+    id: "s5",
+    name: "Le Gueulard de Sarkov",
+    terr: "orsk",
+    type: "contrebatterie",
+    seed: 6601,
+    turns: 18,
+    rank: 2,
+    ridge: true,
+    tg: [["superbat", 1], ["radar", 1], ["batterie", 1], ["bunker", 0]],
+    reward: 1300,
+    xp: 400,
+    sec: ["noStrike", "shots:16"],
+    wind: [4, 12],
+    who: "Maréchal Grigori Sarkov (intercepté)",
+    brief:
+      "« Commandant. Vous avez été un adversaire instructif. Le Gueulard est en batterie derrière la crête, et il connaît déjà votre secteur. Tirez, et je vous réponds. Ne tirez pas, et j'avance. Voyons lequel de nous deux compte le mieux. »",
   },
 ];
 
-export function getNode(id: string): CampaignNode | undefined {
-  return CAMPAIGN_NODES.find((n) => n.id === id);
-}
+// ====================================================================
+// ÉVÉNEMENTS NARRATIFS — décisions à choix multiples
+// ====================================================================
+export const EVENTS: Record<string, CampaignEvent> = {
+  alliance: {
+    id: "alliance",
+    title: "Deux mains tendues",
+    who: "Maréchale Vaugrenard",
+    text:
+      "La Ligue Sorelienne et le Conclave des Veilleurs proposent chacun un pacte, et chacun exige que nous refusions l'autre. Le Comte Sorel offre ses prix et ses entrepôts. Mère Veyl offre ses éclaireurs et le couvert de ses bois. Vous êtes sur le terrain : je suivrai votre avis.",
+    opts: [
+      {
+        label: "Signer avec la Ligue Sorelienne",
+        eff: { rep: { sorel: 30, veyl: -20 }, flag: "pacteLigue" },
+        res: "Sorel sourit trop. Vos prix baissent de 20 %. Veyl ne répond plus à la radio.",
+      },
+      {
+        label: "Signer avec le Conclave",
+        eff: { rep: { veyl: 30, sorel: -20 }, flag: "pacteConclave", drones: 2 },
+        res: "Les éclaireurs de Veyl couvrent vos positions en forêt et vous confient deux drones. La Ligue augmente ses tarifs.",
+      },
+    ],
+  },
+  caravane: {
+    id: "caravane",
+    title: "Caravane en panne",
+    who: "Radio de la Ligue",
+    text: "Une caravane sorelienne est immobilisée à découvert, à quelques kilomètres. Elle demande du carburant.",
+    opts: [
+      {
+        label: "Céder 5 unités de carburant",
+        eff: { fuel: -5, rep: { sorel: 10 } },
+        res: "La caravane repart. Sorel fait savoir qu'il n'oublie pas.",
+      },
+      { label: "Passer son chemin", eff: { rep: { sorel: -4 } }, res: "Vous gardez vos réserves. La radio de la Ligue se tait." },
+    ],
+  },
+  deserteur: {
+    id: "deserteur",
+    title: "Le Transfuge",
+    who: "Poste avancé",
+    text: "Un officier sarkovien s'est présenté aux avant-postes avec des cartes. Il demande 100 crédits et un sauf-conduit.",
+    opts: [
+      {
+        label: "Payer 100 crédits",
+        need: { credits: 100 },
+        eff: { credits: -100, flag: "intel", rep: { theranie: 3 } },
+        res: "Ses cartes sont authentiques : lors de la prochaine opération, tous les objectifs seront localisés d'emblée.",
+      },
+      {
+        label: "Le remettre à l'état-major",
+        eff: { rep: { theranie: 6 } },
+        res: "Vaugrenard apprécie le respect de la procédure.",
+      },
+    ],
+  },
+  obus: {
+    id: "obus",
+    title: "Les partisans manquent d'obus",
+    who: "Mère Ysolde Veyl",
+    text: "Le Conclave tient un col avec trois mortiers et presque plus rien à tirer. Veyl demande six obus.",
+    opts: [
+      {
+        label: "Donner 6 OBX",
+        need: { he: 6 },
+        eff: { he: -6, rep: { veyl: 12 } },
+        res: "Le col tient. Les partisans parlent de vous autour des feux.",
+      },
+      { label: "Refuser", eff: { rep: { veyl: -6 } }, res: "Le col tombe dans la nuit. Veyl ne dit rien — ce qui est pire." },
+    ],
+  },
+  inspection: {
+    id: "inspection",
+    title: "Inspection de l'état-major",
+    who: "Intendance de Theranie",
+    text: "Un contrôleur vérifie vos registres de consommation. Vous pouvez présenter les chiffres réels ou les arranger pour obtenir une dotation.",
+    opts: [
+      {
+        label: "Présenter les chiffres réels",
+        eff: { rep: { theranie: 6 }, credits: 60 },
+        res: "Registres impeccables. Une petite prime de bonne gestion vous est versée.",
+      },
+      {
+        label: "Arranger les chiffres",
+        eff: { credits: 220, rep: { theranie: -8 } },
+        res: "La dotation tombe. Le contrôleur a froncé les sourcils : votre dossier porte désormais une annotation.",
+      },
+    ],
+  },
+  tempete: {
+    id: "tempete",
+    title: "Tempête sur le parc",
+    who: "Chef de pièce",
+    text: "Une tempête menace le parc à carburant. On peut louer des bâches lestées à la Ligue, ou accepter les pertes.",
+    opts: [
+      {
+        label: "Louer les bâches (80 crédits)",
+        need: { credits: 80 },
+        eff: { credits: -80, rep: { sorel: 3 } },
+        res: "Le parc est intact au matin.",
+      },
+      { label: "Accepter les pertes", eff: { fuel: -6 }, res: "Six unités de carburant sont perdues dans la nuit." },
+    ],
+  },
+  marche: {
+    id: "marche",
+    title: "Le marché de minuit",
+    who: "Comte Aldric Sorel",
+    text: "« J'ai deux drones et deux fumigènes tombés d'un camion. 90 crédits le lot, et personne ne pose de question. »",
+    opts: [
+      {
+        label: "Acheter le lot (90 crédits)",
+        need: { credits: 90 },
+        eff: { credits: -90, drones: 2, smoke: 2, rep: { sorel: 4, veyl: -3 } },
+        res: "Le matériel est neuf. Le Conclave, lui, sait d'où il vient.",
+      },
+      { label: "Décliner", eff: {}, res: "Sorel hausse les épaules. Il reviendra." },
+    ],
+  },
+};
 
-export function getMission(id: string): MissionSpec | undefined {
-  return MISSIONS[id];
-}
+export const RANDOM_EVENTS = ["caravane", "deserteur", "obus", "inspection", "tempete", "marche"];
 
-/**
- * Événements aléatoires narratifs entre missions.
- */
-export const RANDOM_EVENTS: { id: string; chance: number; text: string; reputationDelta?: Record<string, number>; resourceDelta?: number }[] = [
-  {
-    id: "recon_astorie",
-    chance: 0.25,
-    text: "Un agent de renseignement astorien vous transmet les coordonnées d'une cible prioritaire. +10 réputation Astorie.",
-    reputationDelta: { astorie: 10 },
-  },
-  {
-    id: "merchants_velka",
-    chance: 0.15,
-    text: "Des marchands Velka vous proposent un marché gris : munitions contre renseignements. +30 ressources, -5 réputation Astorie.",
-    reputationDelta: { astorie: -5 },
-    resourceDelta: 30,
-  },
-  {
-    id: "partisans_korr",
-    chance: 0.10,
-    text: "Des partisans Korr vous tendent une embuscade. La batterie est endommagée. -50 ressources.",
-    resourceDelta: -50,
-  },
-  {
-    id: "diplomat",
-    chance: 0.10,
-    text: "Un diplomate Velka vous offre un obusier en gage de paix future. +1 obusier de réserve.",
-    resourceDelta: 20,
-  },
-];
+// ====================================================================
+// NOMS DE MISSIONS GÉNÉRIQUES (contrats dynamiques)
+// ====================================================================
+export const MISSION_NAMES: Record<string, string[]> = {
+  destruction: ["Coup de masse", "Fer rouge", "Table rase", "Marteau-pilon"],
+  interdiction: ["Route coupée", "Verrou", "Embuscade lointaine", "Nasse"],
+  recon: ["Yeux ouverts", "Aiguille dans la mousse", "Lanterne"],
+  contrebatterie: ["Duel", "Œil pour œil", "Réplique"],
+  appui: ["Dernier rempart", "Mur de feu", "Tenir"],
+  reconquete: ["Retour en force"],
+};
+
+export const MISSION_BRIEFS: Record<string, string> = {
+  destruction: "Positions ennemies repérées. Détruisez les objectifs principaux avant la fin de la fenêtre.",
+  interdiction: "Un mouvement logistique traverse le secteur. Rien ne doit en sortir.",
+  recon: "Activité ennemie sous couvert. Localisez, puis frappez.",
+  contrebatterie: "Une batterie adverse harcèle nos lignes. Faites-la taire avant qu'elle ne vous trouve.",
+  appui: "Une colonne ennemie marche sur un poste allié. Arrêtez-la avant le contact.",
+  reconquete: "Le territoire est tombé. Brisez les positions sarkoviennes pour y reprendre pied.",
+};
