@@ -1,7 +1,7 @@
 # ARTILLERY COMMAND
 
 > Simulateur tactique d'artillerie — jeu web de stratégie, simulation et narration.
-> Univers militaire entièrement fictif (continent d'Atalan).
+> Univers militaire entièrement fictif (continent de Theranie).
 
 ---
 
@@ -11,52 +11,61 @@
 
 ## Vision
 
-ARTILLERY COMMAND est un jeu de simulation et de stratégie dans lequel le joueur incarne le commandant d'une batterie d'artillerie d'élite. Loin d'un simple jeu d'arcade où l'on appuie sur un bouton pour tirer, chaque mission demande de l'observation, de la réflexion et de la prise de décision : analyse des conditions météo, lecture de la carte tactique, choix du type de munition, réglage fin de l'élévation et de l'azimut, gestion de la détection ennemie, et arbitrage permanent entre précision, économie de munitions et discrétion.
+ARTILLERY COMMAND est un jeu de simulation et de stratégie dans lequel le joueur incarne le commandant d'une batterie d'artillerie d'élite. Chaque mission demande de l'observation, de la réflexion et de la prise de décision : analyse des conditions météo, lecture de la carte tactique, choix du type de munition, réglage fin de l'élévation et de l'azimut via des manivelles rotatives, gestion de la détection ennemie, et arbitrage permanent entre précision, économie de munitions et discrétion.
 
-Tous les paramètres physiques sont **fictionnels** et conçus pour le gameplay : aucune donnée opérationnelle réelle n'est reproduite.
+Le monde évolue sans attendre le joueur : les lignes de front bougent, les patrouilles ennemies signalent votre position, la contre-batterie frappe quand vous êtes repéré, les cibles mobiles se déplacent à chaque tour.
 
-## Fonctionnalités
+Tous les paramètres physiques sont **fictionnels** et conçus pour le gameplay.
 
-### Centre de commandement numérique
-Un véritable dashboard immersif, pas un simple panneau admin :
+## Fonctionnalités v2
 
-- **Carte tactique SVG interactive** — grille de coordonnées, relief (collines, forêts, eau, zones urbaines, routes), cibles cliquables avec barres de vie, marqueur de batterie, ligne de visée, trajectoire de l'obus animée, marqueur d'impact, mode déplacement de la batterie.
-- **Panneau de contrôle** — champs numériques modifiables (élévation, azimut) avec boutons d'incrémentation, sélecteur de charge propulsive 1-5, sélecteur de munitions avec stock en temps réel, profils prédéfinis (tir tendu, tir plongeant, portée max), historique des tirs.
-- **Panneau environnement** — compas de vent animé, visibilité, température, densité de l'air, particularités du biome, état de la batterie.
-- **Vue de simulation** — profil de trajectoire parabolique (side view), statistiques prédictives (portée, temps de vol, V0, altitude max), indicateur de cohérence, alertes.
-- **Panneau de validation** — récapitulatif complet avant chaque tir, bouton FEU.
+### Manivelle rotative (au lieu de boutons)
+- **Élévation** et **azimut** se règlent via des molettes circulaires verticales (comme le zoom d'un téléphone : glissez verticalement pour tourner l'aiguille).
+- Graduations majeures/mineures, marqueurs cardinaux (N/E/S/O) pour l'azimut, support de la molette pour les réglages fins.
 
-### Univers narratif d'Atalan
-- **4 factions** distinctes : République Fédérée d'Astorie, Confédération Drakovienne, Ligue Marchande de Velka, Forces Libres de Korr.
-- **7 missions scénarisées** en 7 chapitres, avec narration cohérente : entraînement → invasion frontière → contre-batterie en montagne → siège urbain → frappe longue portée dans le désert → rébellion de partisans → offensive finale.
-- Système de réputation diplomatique par faction.
-- Événements aléatoires entre missions.
+### Monde vivant et IA ennemie agressive
+- **Système de tours** : chaque action (tir, déplacement, drone, attente) fait avancer le monde d'un ou plusieurs tours.
+- **Contre-batterie ennemie** : si votre niveau de menace atteint 100%, l'ennemi localise votre position et tire au tour suivant. Déplacez-vous ou encaissez.
+- **Patrouilles ennemies** : signalent votre position et font grimper la menace.
+- **Cibles mobiles** : convois et colonnes blindées se déplacent à chaque tour — frappez-les avant qu'ils ne fuient ou n'atteignent vos alliés.
+- **Météo dynamique** : le vent tourne, les rafales forcissent, la pluie/brume/tempête apparaissent et dégradent l'observation.
+- **Fog of war** : les objectifs non localisés sont masqués. Envoyez des drones ou des obus illuminants pour les révéler.
 
-### Mécaniques de simulation
-- **Balisitique fictive** : portée = v₀²·sin(2θ)/g ajustée par obusier, charge propulsive, vent latéral, densité de l'air.
-- **Dispersion gaussienne** combinant munition + obusier + conditions météo.
-- **Système de menace/détection** : chaque tir augmente la vigilance ennemie, la proximité accélère la détection, le déplacement réduit la menace.
-- **Dégâts par zone** : proximité × rayon d'effet × dégâts de base.
-- **Civils à protéger** : pénalité sévère de réputation si touchés.
-- **Cibles mobiles** : chars, partisans avec patterns (avance, patrouille).
+### Univers narratif de Theranie
+- **4 factions** : République de Theranie (vous), Union Sarkovienne (ennemi), Ligue Sorelienne (marchands), Conclave des Veilleurs (partisans).
+- **Personnages nommés** : Maréchale Vaugrenard, Maréchal Sarkov, Comte Sorel, Mère Veyl — chacun avec sa personnalité et ses réactions.
+- **7 missions scénarisées** en 7 chapitres, du Baptême du Feu au duel final contre « Le Gueulard » de Sarkov.
+- **Contrats générés dynamiquement** selon le territoire, le grade et l'état du front.
+- **Événements narratifs à choix** : alliances, transfuges, marchés de minuit, inspections — vos décisions laissent des traces.
+- **Réputation diplomatique** par faction qui évolue selon vos actes.
+- **Lignes de front vivantes** : les territoires gagnent ou perdent du contrôle, peuvent tomber et être reconquis.
+
+### Centre de commandement
+- **Carte tactique SVG** avec terrain procédural topographique (courbes de niveau, forêt, relief), fog of war, trajectoire animée, impacts, marqueurs de contre-batterie.
+- **Panneau de contrôle** avec manivelles rotatives, charge 1-5, salves multi-tubes, sélecteur de munitions, configurations récentes.
+- **Panneau simulation** : cohérence du tir, écart estimé, portée, temps de vol, apex, dispersion, avertissements.
+- **Panneau environnement** : compas de vent animé, visibilité, météo, biome.
+- **Journal d'opération** en temps réel avec compte-rendu d'observation (long/court, gauche/droite).
 
 ### Progression
-- **6 grades** : Sergent → Sergent-Chef → Lieutenant → Capitaine → Commandant → Général de Brigade.
-- **3 obusiers à débloquer** : M-77 « Verrier » (105 mm fictif), D-30L « Lance-Long » (122 mm fictif), K-9 Voiron « Tempest » (155 mm fictif).
-- **5 types de munitions** : HE (explosif), fumigène, illuminant, guidé, à sous-munitions.
-- **5 biomes** : désert, forêt, montagne, plaine, urbain.
-- Évaluation **S / A / B / C / D** par mission, avec bonus de discrétion, économie de munitions et rapidité.
+- **5 grades** : Lieutenant → Capitaine → Commandant → Lieutenant-colonel → Colonel.
+- **9 améliorations** : calculateur ORACLE, pièces supplémentaires (salves), filets de camouflage, tracteurs rapides, abris blindés, station météo, cellule drones, homologation munitions guidées/sous-munitions.
+- **Boutique** : munitions, carburant, drones, fumigènes.
+- **5 types de munitions** : OBX explosif, Lance guidée, Grêle à sous-munitions, Fumigène, Éclairante.
+- **5 biomes** : Plaine, Désert, Forêt, Montagne, Zone urbaine — chacun avec son vent, son relief, ses particularités.
+- **Évaluation 3 étoiles** par mission + objectifs secondaires (aucun dégât civil, aucune contre-batterie subie, économie d'obus).
+- **3 niveaux de difficulté** : Recrue (conseils affichés), Vétéran, Élite.
 
 ### Sauvegarde
-Persistance automatique via `localStorage` — la progression est conservée entre les sessions.
+Persistance automatique via `localStorage`.
 
 ## Stack technique
 
 - **Framework** : Next.js 16 (App Router)
 - **Langage** : TypeScript 5
-- **Styling** : Tailwind CSS 4
+- **Styling** : Tailwind CSS 4 + CSS custom (palette opération de nuit)
 - **État** : Zustand avec middleware `persist`
-- **Carte tactique** : SVG natif (aucune librairie lourde)
+- **Carte tactique** : SVG natif + Canvas pour le terrain topographique
 - **Persistance** : localStorage
 
 ## Architecture du code
@@ -64,93 +73,58 @@ Persistance automatique via `localStorage` — la progression est conservée ent
 ```
 src/
 ├── app/
-│   ├── globals.css         # Thème militaire tactique (palette, scanlines, animations)
-│   ├── layout.tsx          # Layout racine (dark mode permanent)
+│   ├── globals.css         # Thème militaire (palette, scanlines, animations)
+│   ├── layout.tsx          # Layout racine + polices Chakra Petch / Barlow / JetBrains Mono
 │   └── page.tsx            # Routage des écrans
 ├── game/
 │   ├── types.ts            # Tous les types TypeScript
-│   ├── constants.ts        # Factions, grades, obusiers, munitions, biomes
-│   ├── simulation.ts       # Moteur balistique + détection + évaluation
-│   ├── missions.ts         # 7 missions + arbre de campagne
+│   ├── constants.ts        # Factions, biomes, munitions, cibles, grades, upgrades, boutique
+│   ├── kernel.ts           # Utilitaires mathématiques (RNG, distance, bearing, gauss)
+│   ├── terrain.ts          # Terrain procédural (relief, forêt, rendu topographique)
+│   ├── simulation.ts       # Moteur balistique fictif (trajectoire, vent, dispersion)
+│   ├── mission.ts          # Moteur de mission (tours, IA, contre-batterie, cibles mobiles)
+│   ├── missions.ts         # 7 missions scénarisées + événements narratifs
+│   ├── campaign.ts         # Campagne (contrats, monde vivant, upgrades, boutique)
 │   └── store.ts            # Store Zustand persistant
 └── components/game/
     ├── BootScreen.tsx          # Écran de démarrage animé
-    ├── CampaignMap.tsx         # Carte de campagne narrative
-    ├── MissionBriefing.tsx     # Briefing de mission
-    ├── CommandDashboard.tsx    # Dashboard de commandement (élément central)
-    ├── TacticalMap.tsx         # Carte tactique SVG interactive
-    ├── ControlPanel.tsx        # Panneau de contrôle (B)
-    ├── EnvironmentPanel.tsx    # Panneau environnement (C)
-    ├── SimulationView.tsx      # Visualisation simulation (D)
-    ├── ValidationPanel.tsx     # Panneau de validation (E)
-    ├── ResultsScreen.tsx       # Écran de résultats
-    ├── BarracksScreen.tsx      # Caserne (progression & arsenal)
-    ├── ui.tsx                  # Composants UI tactiques réutilisables
-    └── types.ts
+    ├── HQScreen.tsx             # Quartier Général (opérations, intendance, monde)
+    ├── MissionBriefing.tsx      # Briefing de mission
+    ├── CommandDashboard.tsx     # Dashboard d'opération (manivelles + carte + panneaux)
+    ├── TacticalMap.tsx          # Carte tactique SVG (terrain + fog + animations)
+    ├── RotaryCrank.tsx          # Manivelle rotative verticale (élévation/azimut)
+    ├── DebriefScreen.tsx        # Debrief (étoiles, stats, narration)
+    └── BarracksScreen.tsx       # Caserne (arsenal, grades, réputation)
 ```
 
 ## Démarrer le projet
 
 ```bash
-# Installation des dépendances
 bun install
-
-# Lancement du serveur de développement
-bun run dev
-
-# Build de production
-bun run build
+bun run dev          # serveur de développement
+# ou
+bun run build:static # build statique (pour déploiement)
 ```
-
-Le jeu est accessible sur `http://localhost:3000`.
 
 ## Déploiement sur Render (gratuit, en ligne)
 
-Le jeu est **100% côté client** (Zustand + localStorage), donc il se déploie très simplement en **Static Site gratuit** sur Render. Deux options :
+Le jeu est **100% côté client** (Zustand + localStorage), déployable en **Static Site gratuit** sur Render.
 
-### Option A — Déploiement en un clic (recommandé)
+### Option A — Blueprint (recommandé)
+1. Compte sur [render.com](https://render.com) (connexion GitHub).
+2. **New → Blueprint** → sélectionnez le dépôt.
+3. Render détecte `render.yaml` → **Apply**.
+4. URL publique en ~2-3 min.
 
-Un fichier `render.yaml` (Blueprint) est déjà présent à la racine du dépôt.
-
-1. Créez un compte sur [render.com](https://render.com) (gratuit, connexion GitHub).
-2. Sur le dashboard Render, cliquez sur **New → Blueprint**.
-3. Sélectionnez le dépôt GitHub `bono-p/artillery-command-1`.
-4. Render détecte automatiquement le `render.yaml` et pré-remplit la configuration.
-5. Cliquez sur **Apply** — Render lance le build (`bun install && bun run build:static`) puis publie le dossier `out/` sur son CDN.
-6. Patientez ~2-3 min. Render vous donne une URL publique du type `https://artillery-command.onrender.com`.
-
-### Option B — Création manuelle
-
-1. Sur Render : **New → Static Site**.
-2. Connectez le dépôt GitHub `bono-p/artillery-command-1`.
-3. Configurez :
-   - **Name** : `artillery-command`
-   - **Branch** : `main`
-   - **Build Command** : `bun install && bun run build:static`
-   - **Publish Directory** : `out`
-   - **Plan** : Free
-4. **Create Static Site**. Le build se lance, et le site est en ligne quelques minutes plus tard.
-
-### Vérification post-déploiement
-
-- Ouvrez l'URL Render → l'écran de boot animé doit s'afficher.
-- Cliquez **Nouvelle campagne** → saisissez un nom de commandant → **Déployer**.
-- La carte de campagne s'affiche avec les 7 missions.
-- La progression est sauvegardée dans le `localStorage` du navigateur (persistante entre sessions sur le même appareil/navigateur).
-
-### Notes
-
-- Le plan gratuit Render pour les Static Sites n'a **pas de mise en veille** : le site répond instantanément via CDN.
-- Aucune variable d'environnement n'est nécessaire.
-- Chaque `git push` sur `main` redéploie automatiquement si l'auto-deploy est activé.
+### Option B — Manuel
+1. **New → Static Site**.
+2. Build Command : `bun install && bun run build:static`
+3. Publish Directory : `out`
+4. Plan : Free → Create.
 
 ## Avis important
 
-Tous les paramètres balistiques, les caractéristiques des obusiers et des munitions, les procédures et les noms d'opérations sont **entièrement fictifs** et conçus exclusivement pour le gameplay. Aucune donnée opérationnelle réelle n'est reproduite. Les factions, les lieux et les personnages sont imaginaires.
-
-## Licence
-
-Projet de démonstration — usage personnel et éducatif.
+Tous les paramètres balistiques, caractéristiques d'obusiers, procédures et noms d'opérations sont **entièrement fictifs** et conçus exclusivement pour le gameplay. Aucune donnée opérationnelle réelle n'est reproduite. Factions, lieux et personnages sont imaginaires.
 
 ---
 

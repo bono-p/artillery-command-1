@@ -14,13 +14,9 @@ services:
     runtime: static
     name: artillery-command
     branch: main
-    # Commande de build : installe les dépendances puis génère l'export statique Next.js
     buildCommand: bun install && bun run build:static
-    # Répertoire à publier (chemin relatif à la racine du dépôt)
     staticPublishPath: ./out
-    # Plan gratuit — pas de mise en veille pour les static sites
     plan: free
-    # Headers de cache et sécurité
     headers:
       - path: /_next/static/*
         name: Cache-Control
@@ -28,7 +24,5 @@ services:
       - path: /*
         name: X-Content-Type-Options
         value: nosniff
-    # Auto-déploy à chaque push sur main
     autoDeploy: true
-    # Variables d'environnement (aucune nécessaire — jeu 100% client-side)
     envVars: []
